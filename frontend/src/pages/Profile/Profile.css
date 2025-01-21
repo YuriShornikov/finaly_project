@@ -1,0 +1,89 @@
+.profile__change {
+  margin-top: 1rem;
+}
+
+.profile, .data__files {
+  padding: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  border: 0.1rem solid black;
+  position: relative;
+  gap: 2rem;
+  align-items: center;
+}
+
+.profile__top {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile img {
+  width: 10rem;
+  height: 10rem;
+}
+
+.user__field {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 1rem;
+}
+
+.btn.cancel {
+  position: absolute;
+  right: 1rem;
+  background-color: red;
+}
+
+.btn.exit {
+  background-color: red;
+}
+
+.btn.exit:hover, .btn.cancel:hover {
+  background-color: rgb(212, 0, 0);
+}
+
+.user__field li {
+  display: grid;
+  grid-template-columns: repeat(3, 10rem);
+  gap: 1rem;
+}
+
+.avatar {
+  display: grid;
+  grid-template-columns: 6rem 16rem 10rem;
+  text-align: left;
+}
+
+strong {
+  width: 6rem;
+}
+
+li {
+  font-weight: bold;
+}
+
+.add__files {
+  display: grid;
+  grid-template-columns: 10rem 15rem 15rem 10rem;
+  flex-direction: row;
+  justify-items: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.add__files input {
+  cursor: pointer;
+}
+
+h4 {
+  margin: 0;
+}
+
+.data__files {
+  flex-direction: column;
+}

@@ -1,0 +1,37 @@
+.file_view img {
+  max-width: 200px;
+  max-height: 200px;
+}
+
+.file__table {
+   margin: 0 auto;
+  width: 50%;
+  border-collapse: collapse;
+}
+
+.file__table td, .file__table th {
+  text-align: center;
+  padding: 10px;
+}
+
+.file__table input, .file__table textarea, .file__table button {
+  margin: 0 auto;
+  display: block;
+  text-align: center;
+}
+
+.file__table td button {
+  width: 8rem;
+}
+
+.file__table td label {
+  width: 10rem;
+}
+
+.btn.delete {
+  background-color: red;
+}
+
+.btn.delete:hover {
+  background-color: rgb(197, 2, 2);
+}
