@@ -43,7 +43,7 @@
   background-color: red;
 }
 
-.btn.cancel:hover {
+.btn.exit:hover, .btn.cancel:hover {
   background-color: rgb(212, 0, 0);
 }
 

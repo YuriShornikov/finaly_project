@@ -13,6 +13,7 @@
 			`
 		*Создать миграцию:* `python manage.py makemigrations`
 		*Применить миграцию:* `python manage.py migrate`
+		*Создайте суперпользователя, админа, для теста админ прав:* `python manage.py createsuperuser`
 		*Запустить сервер:* `python manage.py runserver`
 		Помните, что при возникновении необходимости в settings.py дописать ALLOWED_HOSTS
 

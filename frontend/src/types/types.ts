@@ -13,7 +13,7 @@ export interface File {
   id: number;
   file_name?: string;
   file_size?: number;
-  type?: string;
+  type: string;
   url: string;
   upload_date?: string;
   last_downloaded?: string;
@@ -32,3 +32,8 @@ export interface UploadedFile {
 export interface UploadResponse {
   uploaded_files: File[];
 }
+
+// Функция валидации
+export const validateLogin = (login: string) => /^[a-zA-Z][a-zA-Z0-9]{3,19}$/.test(login);
+export const validateEmail = (email: string) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+export const validatePassword = (password: string) => /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/.test(password);

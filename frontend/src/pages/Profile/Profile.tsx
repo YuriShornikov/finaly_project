@@ -1,3 +1,227 @@
+// import React, { useState, useEffect, useRef } from 'react';
+// import { useAppSelector, useAppDispatch } from '../../hooks/hooks';
+// import { logoutUser, updateUser } from '../../slice/authSlice';
+// import { fetchFiles, uploadFile } from '../../slice/fileSlice';
+// import { useNavigate } from 'react-router-dom';
+// import { AdminUserList } from '../AdminUserList';
+// import { FilesList } from '../../components/FilesList/FilesList';
+// import { User } from '../../types/types';
+// import './Profile.css';
+
+// export const Profile: React.FC = () => {
+//   const user = useAppSelector((state) => state.auth.currentUser);
+//   const dispatch = useAppDispatch();
+//   const navigate = useNavigate();
+//   const [editingField, setEditingField] = useState<string | null>(null);
+// 	const [fieldValue, setFieldValue] = useState('');
+//   const [error, setError] = useState<string | null>(null);
+//   const [loading, setLoading] = useState(false);
+//   const [newFiles, setNewFiles] = useState<File[]>([]);
+//   const fileInputRef = useRef<HTMLInputElement | null>(null);
+//   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+//   const [comment, setComment] = useState('');
+
+//   useEffect(() => {
+// 	  if (user) {
+//       dispatch(fetchFiles({ userId: user.id }));
+//     }
+//   }, [dispatch, user]);
+
+//   useEffect(() => {
+//     if (!user) {
+//       navigate('/');
+//     }
+//   }, [user, navigate]);
+
+//   const handleLogout = () => {
+//     dispatch(logoutUser());
+//     navigate('/');
+//   };
+
+//   const handleEditField = (field: string, value: string) => {
+//     setEditingField(field);
+//     setFieldValue(value);
+//   };
+
+//   const handleCancelEdit = () => {
+//     setEditingField(null);
+//     setError(null);
+//   };
+
+//   // Сохранение полей
+//   const handleSaveField = async () => {
+//     if (!user || !editingField || !fieldValue) return;
+//     setLoading(true);
+// 	  const updatedData: User = { ...user, [editingField]: fieldValue };
+// 		try {
+//       await dispatch(updateUser(updatedData));
+//       setEditingField(null);
+//     } catch (err) {
+//       setError('Ошибка при обновлении данных');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Выбор файлов
+//   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, isAvatar: boolean = false) => {
+//   	if (event.target.files) {
+//       if (isAvatar) {
+//         const file: File = event.target.files[0];
+//         const isImage = file.type.startsWith('image/');
+//         if (!isImage) {
+//           setError('Загружать можно только изображения!');
+//           return;
+//         }
+//       	setAvatarFile(file);
+//       } else {
+//         const files: File[] = Array.from(event.target.files);
+//         setNewFiles((prevFiles) => [...prevFiles, ...files]);
+//       }
+//     }
+//   };
+
+//   // Загрузка файлов в хранилище
+//   const handleUploadFiles = async (isAvatar: boolean = false) => {
+//     if (!user || (isAvatar ? !avatarFile : newFiles.length === 0)) return;
+//     setLoading(true);
+// 		const formData = new FormData();
+//     if (comment) formData.append('comment', comment);
+//     if (isAvatar) {
+//       formData.append('file', avatarFile!);
+//     } else {
+//       newFiles.forEach((file) => formData.append('file', file));
+//     }
+// 		try {
+//       const uploadedFile = await dispatch(uploadFile({ userId: user.id, fileData: formData })).unwrap();
+//       if (isAvatar && uploadedFile.uploaded_files[0]?.url) {
+//         await dispatch(updateUser({ id: user.id, avatar: uploadedFile.uploaded_files[0].url }));
+//       }
+// 			setAvatarFile(null);
+// 			setNewFiles([]);
+// 			setComment('');
+// 			if (fileInputRef.current) {
+// 				console.log('clear')
+// 				fileInputRef.current.value = '';
+// 			}
+//     } catch (err) {
+//       setError('Ошибка при загрузке файлов');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+// 	const fields = [
+//   	{ label: 'Логин', field: 'login', value: user?.login || '' },
+//     { label: 'Полное имя', field: 'fullname', value: user?.fullname || '' },
+//     { label: 'Email', field: 'email', value: user?.email || 'Нет email' },
+//     { label: 'Пароль', field: 'password', value: '********' },
+//   ];
+
+//   if (!user) {
+//     return <p>Пожалуйста, войдите в систему</p>;
+//   }
+
+//   return (
+//     <div>
+//       <div className='profile__top'>
+//         <h1>Добро пожаловать, {user.fullname}</h1>
+//         <button
+// 					className='btn exit' 
+// 					onClick={handleLogout}
+// 				>
+// 					Выход
+// 				</button>
+//       </div>
+//       {error && <p className="error">{error}</p>}
+//       <section className='profile'>
+//         <img
+//           src={user.avatar}
+//           alt='аватарка'
+//         />
+//         <div className='profile__change'>
+//           <div className='avatar'>
+//             <strong>Аватарка:</strong>
+//             <input
+// 							key={avatarFile ? avatarFile.name : 'default'}
+//               type='file'
+//               accept='image/*' 
+//               onChange={(e) => handleFileChange(e, true)} 
+//               ref={fileInputRef}
+// 						/>
+//             <button
+//               className='btn'
+//               onClick={() => handleUploadFiles(true)}
+//               disabled={!avatarFile || loading}
+//             >
+//             	{loading ? 'Загрузка...' : 'Установить'}
+//             </button>
+//           </div>
+//           <ul className='user__field'>
+//             {fields.map(({ label, field, value }) => (
+//             	<li key={field}>
+//                 <strong>{label}:</strong>
+//                 {editingField === field ? (
+//                   <>
+//                   	<input
+//                       type={field === 'password' ? 'password' : 'text'}
+//                       value={fieldValue}
+//                       onChange={(e) => setFieldValue(e.target.value)}
+//                     />
+//                     <button className='btn' onClick={handleSaveField} disabled={loading}>
+//                       Сохранить
+//                     </button>
+//                     <button className='btn cancel' onClick={handleCancelEdit}>
+//                       Отмена
+//                     </button>
+//                   </>
+//                 ) : (
+//                   <>
+//                     {value}
+//                   	<button className='btn' onClick={() => handleEditField(field, value)}>
+//                       Редактировать
+//                     </button>
+//                   </>
+//             		)}
+//               </li>
+//             ))}
+//           </ul>
+//         </div>
+//       </section>
+//       <h1>Файловое хранилище</h1>
+//       <section className='data__files'>
+//         <div className='add__files'>
+//           <h4>Добавить файлы:</h4>
+//         	<input 
+//             type='file'
+//             multiple 
+//             onChange={handleFileChange} 
+//             ref={fileInputRef} 
+//           />
+//           <label>
+//             Комментарий:
+//             <textarea 
+//               value={comment} 
+//               onChange={(e) => setComment(e.target.value)} 
+//             />
+//           </label>
+//           <button
+//             className='btn'
+//             onClick={() => handleUploadFiles(false)}
+//             disabled={newFiles.length === 0 || loading}
+//           >
+//             {loading ? 'Загрузка...' : 'Загрузить'}
+//           </button>
+//         </div>
+//       </section>
+//       <section>
+//         <FilesList user={user} />
+//       </section>
+//     	{user.is_admin && <AdminUserList />}
+//     </div>
+//   );
+// };
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../../hooks/hooks';
 import { logoutUser, updateUser } from '../../slice/authSlice';
@@ -5,7 +229,7 @@ import { fetchFiles, uploadFile } from '../../slice/fileSlice';
 import { useNavigate } from 'react-router-dom';
 import { AdminUserList } from '../AdminUserList';
 import { FilesList } from '../../components/FilesList/FilesList';
-import { User } from '../../types/types';
+import { User, validateLogin, validateEmail, validatePassword } from '../../types/types';
 import './Profile.css';
 
 export const Profile: React.FC = () => {
@@ -13,16 +237,17 @@ export const Profile: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [editingField, setEditingField] = useState<string | null>(null);
-	const [fieldValue, setFieldValue] = useState('');
+  const [fieldValue, setFieldValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [comment, setComment] = useState('');
+  const [errors, setErrors] = useState({ login: '', email: '', password: '', fullname: '' });
 
   useEffect(() => {
-	  if (user) {
+    if (user) {
       dispatch(fetchFiles({ userId: user.id }));
     }
   }, [dispatch, user]);
@@ -40,7 +265,7 @@ export const Profile: React.FC = () => {
 
   const handleEditField = (field: string, value: string) => {
     setEditingField(field);
-    setFieldValue(value);
+    setFieldValue(field === 'password' ? '' : value);
   };
 
   const handleCancelEdit = () => {
@@ -48,12 +273,38 @@ export const Profile: React.FC = () => {
     setError(null);
   };
 
-  // Сохранение полей
+  // Валидация перед сохранением
   const handleSaveField = async () => {
     if (!user || !editingField || !fieldValue) return;
+
+    const newErrors = { login: '', email: '', password: '', fullname: '' };
+    let isValid = true;
+
+    // Валидация
+    if (editingField === 'login' && !validateLogin(fieldValue)) {
+      newErrors.login = 'Логин должен содержать только латинские буквы и цифры, первый символ — буква, длина от 4 до 20 символов';
+      isValid = false;
+    }
+    if (editingField === 'email' && !validateEmail(fieldValue)) {
+      newErrors.email = 'Email должен соответствовать формату адресов электронной почты';
+      isValid = false;
+    }
+    if (editingField === 'password' && !validatePassword(fieldValue)) {
+      newErrors.password = 'Пароль должен содержать не менее 6 символов: как минимум одна заглавная буква, одна цифра и один специальный символ';
+      isValid = false;
+    }
+    if (editingField === 'fullname' && fieldValue.trim() === '') {
+      newErrors.fullname = 'Введите корректное значение';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+
+    if (!isValid) return;
+
     setLoading(true);
-	  const updatedData: User = { ...user, [editingField]: fieldValue };
-		try {
+    const updatedData: User = { ...user, [editingField]: fieldValue };
+    try {
       await dispatch(updateUser(updatedData));
       setEditingField(null);
     } catch (err) {
@@ -63,9 +314,8 @@ export const Profile: React.FC = () => {
     }
   };
 
-  // Выбор файлов
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, isAvatar: boolean = false) => {
-  	if (event.target.files) {
+    if (event.target.files) {
       if (isAvatar) {
         const file: File = event.target.files[0];
         const isImage = file.type.startsWith('image/');
@@ -73,7 +323,7 @@ export const Profile: React.FC = () => {
           setError('Загружать можно только изображения!');
           return;
         }
-      	setAvatarFile(file);
+        setAvatarFile(file);
       } else {
         const files: File[] = Array.from(event.target.files);
         setNewFiles((prevFiles) => [...prevFiles, ...files]);
@@ -81,28 +331,27 @@ export const Profile: React.FC = () => {
     }
   };
 
-  // Загрузка файлов в хранилище
   const handleUploadFiles = async (isAvatar: boolean = false) => {
     if (!user || (isAvatar ? !avatarFile : newFiles.length === 0)) return;
     setLoading(true);
-		const formData = new FormData();
+    const formData = new FormData();
     if (comment) formData.append('comment', comment);
     if (isAvatar) {
       formData.append('file', avatarFile!);
     } else {
       newFiles.forEach((file) => formData.append('file', file));
     }
-		try {
+    try {
       const uploadedFile = await dispatch(uploadFile({ userId: user.id, fileData: formData })).unwrap();
       if (isAvatar && uploadedFile.uploaded_files[0]?.url) {
         await dispatch(updateUser({ id: user.id, avatar: uploadedFile.uploaded_files[0].url }));
       }
-			setAvatarFile(null);
-			setNewFiles([]);
-			setComment('');
-			if (fileInputRef.current) {
-				fileInputRef.current.value = '';
-			}
+      setAvatarFile(null);
+      setNewFiles([]);
+      setComment('');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (err) {
       setError('Ошибка при загрузке файлов');
     } finally {
@@ -110,8 +359,8 @@ export const Profile: React.FC = () => {
     }
   };
 
-	const fields = [
-  	{ label: 'Логин', field: 'login', value: user?.login || '' },
+  const fields = [
+    { label: 'Логин', field: 'login', value: user?.login || '' },
     { label: 'Полное имя', field: 'fullname', value: user?.fullname || '' },
     { label: 'Email', field: 'email', value: user?.email || 'Нет email' },
     { label: 'Пароль', field: 'password', value: '********' },
@@ -125,7 +374,12 @@ export const Profile: React.FC = () => {
     <div>
       <div className='profile__top'>
         <h1>Добро пожаловать, {user.fullname}</h1>
-        <button className='btn exit' onClick={handleLogout}>Выход</button>
+        <button
+          className='btn exit' 
+          onClick={handleLogout}
+        >
+          Выход
+        </button>
       </div>
       {error && <p className="error">{error}</p>}
       <section className='profile'>
@@ -136,27 +390,28 @@ export const Profile: React.FC = () => {
         <div className='profile__change'>
           <div className='avatar'>
             <strong>Аватарка:</strong>
-            <input 
+            <input
+              key={avatarFile ? avatarFile.name : 'default'}
               type='file'
               accept='image/*' 
               onChange={(e) => handleFileChange(e, true)} 
               ref={fileInputRef}
-						/>
+            />
             <button
               className='btn'
               onClick={() => handleUploadFiles(true)}
               disabled={!avatarFile || loading}
             >
-            	{loading ? 'Загрузка...' : 'Установить'}
+              {loading ? 'Загрузка...' : 'Установить'}
             </button>
           </div>
           <ul className='user__field'>
             {fields.map(({ label, field, value }) => (
-            	<li key={field}>
+              <li key={field}>
                 <strong>{label}:</strong>
                 {editingField === field ? (
                   <>
-                  	<input
+                    <input
                       type={field === 'password' ? 'password' : 'text'}
                       value={fieldValue}
                       onChange={(e) => setFieldValue(e.target.value)}
@@ -171,11 +426,11 @@ export const Profile: React.FC = () => {
                 ) : (
                   <>
                     {value}
-                  	<button className='btn' onClick={() => handleEditField(field, value)}>
+                    <button className='btn' onClick={() => handleEditField(field, value)}>
                       Редактировать
                     </button>
                   </>
-            		)}
+                )}
               </li>
             ))}
           </ul>
@@ -185,7 +440,7 @@ export const Profile: React.FC = () => {
       <section className='data__files'>
         <div className='add__files'>
           <h4>Добавить файлы:</h4>
-        	<input 
+          <input 
             type='file'
             multiple 
             onChange={handleFileChange} 
@@ -210,7 +465,7 @@ export const Profile: React.FC = () => {
       <section>
         <FilesList user={user} />
       </section>
-    	{user.is_admin && <AdminUserList />}
+      {user.is_admin && <AdminUserList />}
     </div>
   );
 };

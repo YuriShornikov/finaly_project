@@ -61,14 +61,14 @@ export const AdminUserList: React.FC = () => {
     <section>
       {selectedUser ? (
         <div>
-          <button
+          <h2>Файлы пользователя {selectedUser.fullname}</h2>
+          <FilesList user={selectedUser} />
+					<button
 						className='btn back'
 						onClick={handleBack}
 					>
-						Назад к списку пользователей
+						Назад к списку
 					</button>
-          <h2>Файлы пользователя {selectedUser.fullname}</h2>
-          <FilesList user={selectedUser} />
         </div>
       ) : (
         <>
@@ -130,12 +130,16 @@ export const AdminUserList: React.FC = () => {
                       />
                     </td>
                     <td>
-                      <button onClick={() => handleAdminSaveField(user.id)}>
+                      <button
+												className='btn table'
+												onClick={() => handleAdminSaveField(user.id)}
+											>
                         Сохранить
                       </button>
                     </td>
 										<td>
                       <button
+												className='btn delete table'
                         onClick={() => handleDeleteUser(user.id)}
                         disabled={user.id === currentUser?.id}
                       >
@@ -143,7 +147,8 @@ export const AdminUserList: React.FC = () => {
                       </button>
                     </td>
                     <td>
-                      <button 
+                      <button
+												className='btn table'
                         onClick={() => handleUserClick(user)}
                       	disabled={user.id === currentUser?.id}
                       >

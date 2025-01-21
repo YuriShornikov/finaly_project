@@ -30,7 +30,7 @@ export const FilesList: React.FC<FilesListProps> = ({ user }) => {
     	{selectedFile ? (
         <FileView file={selectedFile} onClose={handleClose} />
       ) : (
-      	<>  
+      	<>
           <h2>Загруженные файлы:</h2>
           {files && Array.isArray(files) && files.length > 0 ? (
             <table border={1} cellPadding='5' cellSpacing='0'>
@@ -62,8 +62,13 @@ export const FilesList: React.FC<FilesListProps> = ({ user }) => {
                     	<td>{file.upload_date}</td>
                     	<td>{file.last_downloaded}</td>
                     	<td>{file.comment}</td>
-                  		<td className='file-view' onClick={() => handleFileClick(file)}>
-                      	просмотр и редактирование
+                  		<td>
+												<button
+													className='btn'
+													onClick={() => handleFileClick(file)}
+												>
+													Открыть файл
+												</button>
                     	</td>
                   	</tr>
                 	))

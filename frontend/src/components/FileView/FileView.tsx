@@ -69,10 +69,12 @@ export const FileView: React.FC<FileViewProps> = ({ file, onClose }) => {
     });
   };
 
+	const isImage = file.type.startsWith('image/');
+
   return (
   	<div className='file_view'>
       <h2>Редактирование файла: {tempFileName}</h2>
-      <img src={`${file.url}`} alt='фото' />
+      {isImage && <img src={file.url} alt='фото' />}
       <table className='file__table'>
         <tbody>
           <tr className='file__field'>
