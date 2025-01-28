@@ -28,13 +28,11 @@ export const FileView: React.FC<FileViewProps> = ({ file, onClose }) => {
 
   // Удаление файла
   const handleDelete = () => {
-    if (window.confirm("Вы уверены, что хотите удалить этот файл?")) {
-      dispatch(deleteFile({ userId: file.user_id, fileId: file.id }));
-		  if (file.url === user?.avatar) {
-        dispatch(updateUser({ ...user, avatar: '' }));
-      }
-    	onClose();
-  	}
+    dispatch(deleteFile({ userId: file.user_id, fileId: file.id }));
+		if (file.url === user?.avatar) {
+      dispatch(updateUser({ ...user, avatar: '' }));
+    }
+    onClose();
   };
 
   // Переименование файла
@@ -79,10 +77,11 @@ export const FileView: React.FC<FileViewProps> = ({ file, onClose }) => {
         <tbody>
           <tr className='file__field'>
             <td>
-							<label>Новое имя файла:</label>
+							<label htmlFor='file-name'>Новое имя файла:</label>
 						</td>
             <td>
               <input
+                id='file-name'
                 type='text'
                 value={newFileName}
                 onChange={(e) => setNewFileName(e.target.value)}
@@ -98,10 +97,11 @@ export const FileView: React.FC<FileViewProps> = ({ file, onClose }) => {
           </tr>
           <tr className='file__field'>
             <td>
-							<label>Комментарий:</label>
+							<label htmlFor='file-comment'>Комментарий:</label>
 						</td>
             <td>
               <textarea
+                id='file-comment'
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
               />
@@ -117,12 +117,13 @@ export const FileView: React.FC<FileViewProps> = ({ file, onClose }) => {
           {sharedLink && (
             <tr className='file__field'>
               <td>
-								<strong>
+								<label htmlFor='file-link'>
 									Ссылка для общего доступа:
-								</strong>
+								</label>
 							</td>
               <td>
                 <input
+                  id='file-link'
                   type='text'
                   value={sharedLink}
                   readOnly

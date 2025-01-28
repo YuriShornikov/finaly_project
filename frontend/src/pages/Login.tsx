@@ -40,6 +40,7 @@ export const Login: React.FC = () => {
             value={login}
             onChange={(e) => setLogin(e.target.value)}
             required
+            autoComplete='current-login'
           />
         </div>
         <div className='inp'>
@@ -51,10 +52,11 @@ export const Login: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete='current-password'
           />
       	</div>
         <p>{error}</p>
-        <button className="btn" type="submit" disabled={loading}>
+        <button className='btn' type='submit' disabled={loading}>
           {loading ? 'Loading...' : 'Login'}
         </button>
       </form>

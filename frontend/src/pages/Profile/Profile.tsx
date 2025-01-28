@@ -3,7 +3,7 @@ import { useAppSelector, useAppDispatch } from '../../hooks/hooks';
 import { logoutUser, updateUser } from '../../slice/authSlice';
 import { fetchFiles, uploadFile } from '../../slice/fileSlice';
 import { useNavigate } from 'react-router-dom';
-import { AdminUserList } from '../AdminUserList';
+import { AdminUserList } from '../Admin/AdminUserList';
 import { FilesList } from '../../components/FilesList/FilesList';
 import { User, validateLogin, validateEmail, validatePassword } from '../../types/types';
 import './Profile.css';
@@ -20,7 +20,12 @@ export const Profile: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [comment, setComment] = useState('');
-  const [errors, setErrors] = useState({ login: '', email: '', password: '', fullname: '' });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({
+    login: '',
+    email: '',
+    password: '',
+    fullname: '',
+  });
 
   useEffect(() => {
     if (user) {
@@ -42,11 +47,24 @@ export const Profile: React.FC = () => {
   const handleEditField = (field: string, value: string) => {
     setEditingField(field);
     setFieldValue(field === 'password' ? '' : value);
+    // if (field === 'file') {
+    //   setAvatarFile(null); // Очищаем выбранный файл
+    //   if (fileInputRef.current) {
+    //     fileInputRef.current.value = ''; // Сбрасываем значение input
+    //   }
+    // } else {
+    //   setFieldValue(field === 'password' ? '' : value);
+    // }
   };
 
   const handleCancelEdit = () => {
     setEditingField(null);
     setError(null);
+
+    setAvatarFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; // Сброс input
+    }
   };
 
   // Валидация перед сохранением
@@ -164,51 +182,68 @@ export const Profile: React.FC = () => {
           alt='аватарка'
         />
         <div className='profile__change'>
-          <div className='avatar'>
-            <strong>Аватарка:</strong>
-            <input
-              key={avatarFile ? avatarFile.name : 'default'}
-              type='file'
-              accept='image/*' 
-              onChange={(e) => handleFileChange(e, true)} 
-              ref={fileInputRef}
-            />
-            <button
-              className='btn'
-              onClick={() => handleUploadFiles(true)}
-              disabled={!avatarFile || loading}
-            >
-              {loading ? 'Загрузка...' : 'Установить'}
-            </button>
-          </div>
+          {/* <div className='avatar'>
+            <strong>Аватарка:</strong> */}
+              {!avatarFile ? (
+                <div className='avatar'>
+                  <strong>Аватарка:</strong>
+                  <input
+                    id='file'
+                    className='avatar-input'
+                    type='file'
+                    accept='image/*'
+                    onChange={(e) => handleFileChange(e, true)}
+                    ref={fileInputRef}
+                  />
+                  <label htmlFor='file' className='btn'>Выбрать файл</label>
+                </div>
+              ) : (
+              <div className='avatar__redactor'>
+                <strong>Аватарка:</strong>
+                <p className="file-info">
+                  Вы выбрали: <strong>{avatarFile.name}</strong>
+                </p>
+                <button
+                  className='btn'
+                  onClick={() => handleUploadFiles(true)}
+                  disabled={!avatarFile || loading}
+                >
+                  {loading ? 'Загрузка...' : 'Установить'}
+                </button>
+                <button className="btn cancel" onClick={handleCancelEdit}>
+                  Отмена
+                </button> 
+              </div> 
+            )}  
+          {/* </div> */}
           <ul className='user__field'>
-            {fields.map(({ label, field, value }) => (
-              <li key={field}>
-                <strong>{label}:</strong>
-                {editingField === field ? (
-                  <>
-                    <input
-                      type={field === 'password' ? 'password' : 'text'}
-                      value={fieldValue}
-                      onChange={(e) => setFieldValue(e.target.value)}
-                    />
-                    <button className='btn' onClick={handleSaveField} disabled={loading}>
-                      Сохранить
-                    </button>
-                    <button className='btn cancel' onClick={handleCancelEdit}>
-                      Отмена
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {value}
-                    <button className='btn' onClick={() => handleEditField(field, value)}>
-                      Редактировать
-                    </button>
-                  </>
-                )}
-              </li>
-            ))}
+            {fields.map(({ label, field, value }) =>
+              editingField === field ? (
+                <li key={field} className='redact'>
+                  <strong>{label}:</strong>
+                  <input
+                    type={field === 'password' ? 'password' : 'text'}
+                    value={fieldValue}
+                    onChange={(e) => setFieldValue(e.target.value)}
+                  />
+                  <button className='btn' onClick={handleSaveField} disabled={loading}>
+                    Сохранить
+                  </button>
+                  <button className='btn cancel' onClick={handleCancelEdit}>
+                    Отмена
+                  </button>
+                  {errors[field] && <p className='error'>{errors[field]}</p>}
+                </li>
+              ) : (
+                <li key={field}>
+                  <strong>{label}:</strong>
+                  {value}
+                  <button className='btn' onClick={() => handleEditField(field, value)}>
+                    Редактировать
+                  </button>
+                </li>
+              )
+            )}
           </ul>
         </div>
       </section>

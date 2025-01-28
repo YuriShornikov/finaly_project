@@ -22,7 +22,6 @@ export const fetchFiles = createAsyncThunk<
 >('files/fetchFiles', async ({ userId }, { rejectWithValue }) => {
   try {
     const response = await apiClient.get(`/files/${userId}/`);
-    console.log(response.data)
     return response.data;
   } catch (error: any) {
     console.error('Error in fetchFiles:', error);
@@ -169,12 +168,11 @@ const fileSlice = createSlice({
 			// Загрузка файла
       .addCase(uploadFile.pending, handlePending)
       .addCase(uploadFile.fulfilled, (state, action) => {
-        console.log(action.payload)
         state.files.push(...action.payload.uploaded_files);
         state.loading = false;
       })
       .addCase(uploadFile.rejected, handleRejected)
-            
+
 			// Удаление файла
       .addCase(deleteFile.pending, handlePending)
       .addCase(deleteFile.fulfilled, (state, action) => {

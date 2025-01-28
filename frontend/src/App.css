@@ -12,12 +12,10 @@ header {
 }
 
 main, .home {
-  padding: 2rem;
   gap: 1rem;
 }
 
 .btn {
-  width: 8rem;
   background-color: #007bff;
   color: white;
   border: none;

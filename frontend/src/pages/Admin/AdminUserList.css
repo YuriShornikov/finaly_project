@@ -1,0 +1,32 @@
+.user__list__mobile {
+  display: none;
+}
+
+/* Для маленьких экранов */
+@media (max-width: 900px) {
+  .user__list__max {
+    display: none;
+  }
+
+  .user__list__mobile {
+    display: block;
+  }
+
+
+}
+
+td input,
+.user-info-value input {
+	max-width: 6rem;
+}
+
+.user-info-label {
+	min-width: 4rem;
+	font-weight: bold;
+}
+
+button:disabled,
+button:disabled:hover {
+	background-color: gray;
+}
+

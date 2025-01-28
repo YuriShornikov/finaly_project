@@ -37,3 +37,5 @@ export interface UploadResponse {
 export const validateLogin = (login: string) => /^[a-zA-Z][a-zA-Z0-9]{3,19}$/.test(login);
 export const validateEmail = (email: string) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
 export const validatePassword = (password: string) => /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/.test(password);
+
+

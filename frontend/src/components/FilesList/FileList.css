@@ -1,0 +1,115 @@
+/* Для больших экранов */
+.responsive-table {
+  display: block;
+}
+
+.desktop-table,
+.user__list__max {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.desktop-table th:nth-child(2),
+.desktop-table td:nth-child(2) {
+	width: 50px;
+}
+
+.desktop-table th,
+.desktop-table td,
+.user__list__max th,
+.user__list__max td,
+.file__table tr
+/* .file__table td  */
+{
+  border: 1px solid black;
+  text-align: center;
+}
+
+.desktop-table th {
+  background-color: #f4f4f4;
+}
+
+.mobile-list,
+.user__list__mobile {
+	display: none;
+}
+
+/* Для экранов меньше 900пх */
+@media (max-width: 900px) {
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-list,
+	.user__list__mobile {
+    display: block;
+  }
+
+  .file-row,
+  .user-row	 {
+    margin-bottom: 1rem;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+
+	.file-info,
+	.user-info {
+		display: grid;
+    grid-template-columns: 1fr 1fr;
+		border: 1px solid black;
+		border-top: 0;
+	}
+
+	.file-info {
+		gap: 10px;
+	}
+
+	.user-info {
+		padding: 0.1rem;
+	}
+
+	.file-info:nth-child(1),
+	.user-info:nth-child(1) {
+		border-top: 1px solid black;
+	}
+
+	.file-info .file-info-label {
+		border-right: 1px solid black;
+		padding: 5px;
+	}
+	
+	.file-info .file-info-value {
+		padding: 5px;
+	}
+
+  .file-info-label {
+		min-width: 5rem;
+    font-weight: bold;
+    text-align: left;
+  }
+
+  .file-info-value {
+		min-width: 5rem;
+    text-align: left;
+		word-wrap: break-word;
+		white-space: normal;
+		overflow-wrap: break-word;
+  }
+
+  .file-action {
+    grid-column: span 2;
+    text-align: center;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+	.mobile-list,
+	.user__list__mobile,
+	.user-info-value input,
+	.btn,
+	.file__field {
+		font-size: 0.7rem;
+	} 
+}

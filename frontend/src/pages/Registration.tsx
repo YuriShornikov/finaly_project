@@ -76,6 +76,7 @@ export const Registration: React.FC = () => {
             onChange={(e) => setLogin(e.target.value)}
             placeholder='Введите логин'
             required
+            autoComplete='current-login'
           />
           {<p>{errors.login}</p>}
         </div>
@@ -88,6 +89,7 @@ export const Registration: React.FC = () => {
             onChange={(e) => setFullname(e.target.value)}
             placeholder='Введите полное имя'
             required
+            autoComplete='current-fullname'
         	/>
           {<p>{errors.fullname}</p>}
         </div>
@@ -100,6 +102,7 @@ export const Registration: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             placeholder='Введите почту @'
             required
+            autoComplete='current-email'
           />
           {<p>{errors.email}</p>}
         </div>
@@ -112,6 +115,7 @@ export const Registration: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             placeholder='Введите пароль'
             required
+            autoComplete='current-password'
           />
           {<p>{errors.password}</p>}
         </div>
