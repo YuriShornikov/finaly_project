@@ -25,6 +25,20 @@
   text-align: center;
 }
 
+/* td {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+tr {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+} */
+
 .desktop-table th {
   background-color: #f4f4f4;
 }

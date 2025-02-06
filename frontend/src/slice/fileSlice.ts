@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { apiClient } from '../utils/axios';
+import { getApiClientWithCsrf, getCsrfToken } from '../utils/axios';
 import { File, UploadResponse } from '../types/types';
 
 interface FileState {
@@ -21,7 +21,9 @@ export const fetchFiles = createAsyncThunk<
   { rejectValue: string }
 >('files/fetchFiles', async ({ userId }, { rejectWithValue }) => {
   try {
-    const response = await apiClient.get(`/files/${userId}/`);
+    await getCsrfToken();
+    const client = await getApiClientWithCsrf();
+    const response = await client.get(`/files/${userId}/`);
     return response.data;
   } catch (error: any) {
     console.error('Error in fetchFiles:', error);
@@ -38,8 +40,11 @@ export const uploadFile = createAsyncThunk<
   { rejectValue: string }
 >('files/uploadFile', async ({ userId, fileData }, { rejectWithValue }) => {
   try {
-    const response = await apiClient.post(`/files/${userId}/upload/`, fileData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    const client = await getApiClientWithCsrf();
+    const response = await client.post(`/files/${userId}/upload/`, fileData, {
+      headers: { 
+        'Content-Type': 'multipart/form-data',
+      },
     });
       return response.data as UploadResponse;
   } catch (error: any) {
@@ -56,7 +61,8 @@ export const deleteFile = createAsyncThunk<
   { rejectValue: string }
 >('files/deleteFile', async ({ userId, fileId }, { rejectWithValue }) => {
   try {
-    await apiClient.delete(`/files/${userId}/delete/${fileId}/`);
+    const client = await getApiClientWithCsrf();
+    await client.delete(`/files/${userId}/delete/${fileId}/`);
     return fileId;
   } catch (error: any) {
     return rejectWithValue(
@@ -72,7 +78,8 @@ export const renameFile = createAsyncThunk<
   { rejectValue: string }
 >('files/renameFile', async ({ fileId, newName }, { rejectWithValue }) => {
   try {
-    const response = await apiClient.patch(`/files/${fileId}/update/`, { new_name: newName });
+    const client = await getApiClientWithCsrf();
+    const response = await client.patch(`/files/${fileId}/update/`, { new_name: newName });
     return response.data;
   } catch (error: any) {
     return rejectWithValue(
@@ -88,7 +95,9 @@ export const updateFileComment = createAsyncThunk<
   { rejectValue: string }
 >('files/updateFileComment', async ({ fileId, newComment }, { rejectWithValue }) => {
   try {
-    const response = await apiClient.patch(`/files/${fileId}/update/`, { comment: newComment });
+    const client = await getApiClientWithCsrf();
+    const response = await client.patch(`/files/${fileId}/update/`, { 
+      comment: newComment, });
     return response.data; // Возвращаем обновленный файл
   } catch (error: any) {
     return rejectWithValue(
@@ -100,11 +109,12 @@ export const updateFileComment = createAsyncThunk<
 // Скачивание файла
 export const downloadFile = createAsyncThunk<
   void,
-  { fileId: number },
+  { fileId: number, fileName?: string },
   { rejectValue: string }
->('files/downloadFile', async ({ fileId }, { rejectWithValue }) => {
+>('files/downloadFile', async ({ fileId, fileName }, { rejectWithValue }) => {
   try {
-    const response = await apiClient.get(`/files/${fileId}/download/`, {
+    const client = await getApiClientWithCsrf();
+    const response = await client.get(`/files/${fileId}/download/`, {
       responseType: 'blob',
     });
 
@@ -116,12 +126,8 @@ export const downloadFile = createAsyncThunk<
     const link = document.createElement('a');
      link.href = fileURL;
 
-    // Установка имени файла из заголовка ответа
-    const contentDisposition = response.headers['content-disposition'];
-    const fileName = contentDisposition
-      ? contentDisposition.split('filename=')[1].replace(/"/g, '')
-      : `file_${fileId}`;
-		link.download = fileName;
+    const downloadFileName = fileName || `file_${fileId}`;
+		link.download = downloadFileName;
     link.click();
     URL.revokeObjectURL(fileURL);
     return;

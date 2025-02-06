@@ -4,8 +4,7 @@ import { logoutUser, updateUser } from '../../slice/authSlice';
 import { fetchFiles, uploadFile } from '../../slice/fileSlice';
 import { useNavigate } from 'react-router-dom';
 import { AdminUserList } from '../Admin/AdminUserList';
-import { FilesList } from '../../components/FilesList/FilesList';
-import { User, validateLogin, validateEmail, validatePassword } from '../../types/types';
+import { validateLogin, validateEmail, validatePassword } from '../../types/types';
 import './Profile.css';
 
 export const Profile: React.FC = () => {
@@ -16,10 +15,8 @@ export const Profile: React.FC = () => {
   const [fieldValue, setFieldValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [newFiles, setNewFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [comment, setComment] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({
     login: '',
     email: '',
@@ -35,7 +32,7 @@ export const Profile: React.FC = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/');
+      navigate('/login');
     }
   }, [user, navigate]);
 
@@ -44,17 +41,13 @@ export const Profile: React.FC = () => {
     navigate('/');
   };
 
+  const handleCloud = () => {
+    navigate('/cloud');
+  };
+
   const handleEditField = (field: string, value: string) => {
     setEditingField(field);
     setFieldValue(field === 'password' ? '' : value);
-    // if (field === 'file') {
-    //   setAvatarFile(null); // Очищаем выбранный файл
-    //   if (fileInputRef.current) {
-    //     fileInputRef.current.value = ''; // Сбрасываем значение input
-    //   }
-    // } else {
-    //   setFieldValue(field === 'password' ? '' : value);
-    // }
   };
 
   const handleCancelEdit = () => {
@@ -63,7 +56,7 @@ export const Profile: React.FC = () => {
 
     setAvatarFile(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''; // Сброс input
+      fileInputRef.current.value = '';
     }
   };
 
@@ -97,7 +90,7 @@ export const Profile: React.FC = () => {
     if (!isValid) return;
 
     setLoading(true);
-    const updatedData: User = { ...user, [editingField]: fieldValue };
+    const updatedData = { id: user.id, [editingField]: fieldValue };
     try {
       await dispatch(updateUser(updatedData));
       setEditingField(null);
@@ -108,46 +101,36 @@ export const Profile: React.FC = () => {
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, isAvatar: boolean = false) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      if (isAvatar) {
-        const file: File = event.target.files[0];
-        const isImage = file.type.startsWith('image/');
-        if (!isImage) {
-          setError('Загружать можно только изображения!');
-          return;
-        }
-        setAvatarFile(file);
-      } else {
-        const files: File[] = Array.from(event.target.files);
-        setNewFiles((prevFiles) => [...prevFiles, ...files]);
+      const file: File = event.target.files[0];
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        setError('Загружать можно только изображения!');
+        return;
       }
+      setAvatarFile(file);
     }
   };
 
-  const handleUploadFiles = async (isAvatar: boolean = false) => {
-    if (!user || (isAvatar ? !avatarFile : newFiles.length === 0)) return;
+  const handleUploadAvatar = async () => {
+    if (!user || !avatarFile) return;
+
     setLoading(true);
     const formData = new FormData();
-    if (comment) formData.append('comment', comment);
-    if (isAvatar) {
-      formData.append('file', avatarFile!);
-    } else {
-      newFiles.forEach((file) => formData.append('file', file));
-    }
+    formData.append('file', avatarFile);
+
     try {
       const uploadedFile = await dispatch(uploadFile({ userId: user.id, fileData: formData })).unwrap();
-      if (isAvatar && uploadedFile.uploaded_files[0]?.url) {
+      if (uploadedFile.uploaded_files[0]?.url) {
         await dispatch(updateUser({ id: user.id, avatar: uploadedFile.uploaded_files[0].url }));
       }
       setAvatarFile(null);
-      setNewFiles([]);
-      setComment('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (err) {
-      setError('Ошибка при загрузке файлов');
+      setError('Ошибка при загрузке аватарки');
     } finally {
       setLoading(false);
     }
@@ -182,8 +165,6 @@ export const Profile: React.FC = () => {
           alt='аватарка'
         />
         <div className='profile__change'>
-          {/* <div className='avatar'>
-            <strong>Аватарка:</strong> */}
               {!avatarFile ? (
                 <div className='avatar'>
                   <strong>Аватарка:</strong>
@@ -192,7 +173,7 @@ export const Profile: React.FC = () => {
                     className='avatar-input'
                     type='file'
                     accept='image/*'
-                    onChange={(e) => handleFileChange(e, true)}
+                    onChange={handleFileChange}
                     ref={fileInputRef}
                   />
                   <label htmlFor='file' className='btn'>Выбрать файл</label>
@@ -205,7 +186,7 @@ export const Profile: React.FC = () => {
                 </p>
                 <button
                   className='btn'
-                  onClick={() => handleUploadFiles(true)}
+                  onClick={handleUploadAvatar}
                   disabled={!avatarFile || loading}
                 >
                   {loading ? 'Загрузка...' : 'Установить'}
@@ -248,34 +229,7 @@ export const Profile: React.FC = () => {
         </div>
       </section>
       <h1>Файловое хранилище</h1>
-      <section className='data__files'>
-        <div className='add__files'>
-          <h4>Добавить файлы:</h4>
-          <input 
-            type='file'
-            multiple 
-            onChange={handleFileChange} 
-            ref={fileInputRef} 
-          />
-          <label>
-            Комментарий:
-            <textarea 
-              value={comment} 
-              onChange={(e) => setComment(e.target.value)} 
-            />
-          </label>
-          <button
-            className='btn'
-            onClick={() => handleUploadFiles(false)}
-            disabled={newFiles.length === 0 || loading}
-          >
-            {loading ? 'Загрузка...' : 'Загрузить'}
-          </button>
-        </div>
-      </section>
-      <section>
-        <FilesList user={user} />
-      </section>
+      <button className="btn" onClick={handleCloud}>Войти</button>
       {user.is_admin && <AdminUserList />}
     </div>
   );

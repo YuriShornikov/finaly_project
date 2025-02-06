@@ -1,3 +1,10 @@
 header {
   cursor: pointer;
+  position: relative;
+}
+
+.btn-profile {
+  position: absolute;
+  top: 2rem;
+  right: 1rem;
 }

@@ -1,21 +1,19 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { apiClient } from '../utils/axios';
-import { User } from '../types/types'
+import { getApiClientWithCsrf, apiClient } from '../utils/axios';
+import { User } from '../types/types';
 
 interface AuthState {
   currentUser: User | null;
   users: User[];
   loading: boolean;
   error: string | null;
-  token: string | null;
 };
 
 const initialState: AuthState = {
-  currentUser: JSON.parse(localStorage.getItem('user') || 'null'),
+  currentUser: null,
   users: [],
   loading: false,
   error: null,
-  token: null,
 };
 
 // Регистрация нового пользователя
@@ -27,104 +25,92 @@ export const registerUser = createAsyncThunk<
   'auth/registerUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('users/register/', userData);
-			const { user, tokens } = response.data;
-
-      // Сохраняем токены в localStorage
-      if (tokens) {
-        localStorage.setItem('accessToken', tokens.access);
-        localStorage.setItem('refreshToken', tokens.refresh);
-      }
-			return { user };
+      const client = await getApiClientWithCsrf();
+      const response = await client.post('users/register/', userData);
+      return { user: response.data.user };
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Registration failed'
-      );
+      return rejectWithValue(error.response?.data?.message || 'Registration failed');
     }
   }
 );
 
-// Список пользователей
-export const fetchUsers = createAsyncThunk<
-  User[],
-  void,
-  { rejectValue: string }
->(
+// Получение списка пользователей
+export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }>(
   'auth/fetchUsers',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get('users/');
-      return response.data.users;      
+      const client = await getApiClientWithCsrf();
+      const response = await client.get('users/');
+      return response.data.users;
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Ошибка при загрузке пользователей'
-      );
+      return rejectWithValue(error.response?.data?.message || 'Ошибка при загрузке пользователей');
     }
   }
 );
 
 // Логин пользователя
-export const loginUser = createAsyncThunk<
-  User,
-  { login: string; password: string },
-  { rejectValue: string }
->(
+export const loginUser = createAsyncThunk<User, { login: string; password: string }, { rejectValue: string }>(
   'auth/loginUser',
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await apiClient.post('users/login/', credentials);
-			const { user, tokens } = response.data;
-
-      // Сохранение токенов в localStorage
-      localStorage.setItem('accessToken', tokens.access);
-      localStorage.setItem('refreshToken', tokens.refresh);
-			return user;
+      return response.data.user;
     } catch (error: any) {
-      return rejectWithValue(
-        error.response
-        ? error.response.data?.message || 'Login failed on server'
-        : error.message || 'Network error'
-      );
+      return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
   }
 );
 
-// Обновление полей
-export const updateUser = createAsyncThunk<
-  { user: User },
-  Partial<{ id: number; fullname: string; login: string; email: string; password: string; avatar: string }>,
-  { rejectValue: string }
->(
+// Проверка авторизации
+export const checkAuth = createAsyncThunk<User, void, { rejectValue: string }>(
+  'auth/checkAuth',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get('users/check-auth/');
+      return response.data.user;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Not authenticated');
+    }
+  }
+);
+
+// Обновление пользователя
+export const updateUser = createAsyncThunk<{ user: User }, Partial<User>, { rejectValue: string }>(
   'auth/updateUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.patch('users/update/', userData);
-			const { user } = response.data;
-      localStorage.setItem('user', JSON.stringify(user));
-			return { user };
+      const client = await getApiClientWithCsrf();
+      const response = await client.patch('users/update/', userData);
+      return { user: response.data.user };
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Failed to update user'
-      );
+      return rejectWithValue(error.response?.data?.message || 'Failed to update user');
     }
   }
 );
 
 // Удаление пользователя
-export const deleteUser = createAsyncThunk<
-  number,
-  number,
-  { rejectValue: string }
->(
+export const deleteUser = createAsyncThunk<number, number, { rejectValue: string }>(
   'auth/deleteUser',
   async (userId, { rejectWithValue }) => {
     try {
-      await apiClient.delete(`users/${userId}/`);
+      const client = await getApiClientWithCsrf();
+      await client.delete(`users/${userId}/`);
       return userId;
     } catch (error: any) {
-      return rejectWithValue(
-      	error.response?.data?.message || 'Ошибка при удалении пользователя'
-      );
+      return rejectWithValue(error.response?.data?.message || 'Ошибка при удалении пользователя');
+    }
+  }
+);
+
+// Логаут пользователя
+export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
+  'auth/logoutUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      const client = await getApiClientWithCsrf();
+      await client.post('users/logout/');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Logout failed');
     }
   }
 );
@@ -133,108 +119,116 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    logoutUser: (state) => {
+    clearAuth: (state) => {
       state.currentUser = null;
       state.users = [];
-      state.token = null;
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.currentUser = action.payload.user;
+        state.loading = false;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.error = action.payload as string;
+        state.loading = false;
+      })
 
-    // Регистрация
-    .addCase(registerUser.pending, (state) => {
-      state.loading = true;
-      state.error = null;
-    })
-    .addCase(registerUser.fulfilled, (state, action) => {
-      state.currentUser = action.payload.user;
-      state.loading = false;
-      state.error = null;
-          
-      // Сохраняем данные пользователя и токен в localStorage
-      localStorage.setItem('user', JSON.stringify(action.payload));
-      if (state.token) {
-        localStorage.setItem('accessToken', state.token);
-      }
-    })            
-    .addCase(registerUser.rejected, (state, action) => {
-      state.error = action.payload as string;
-      state.loading = false;
-      state.currentUser = null;
-    })
-  
-		// Логин
-    .addCase(loginUser.pending, (state) => {
-      state.loading = true;
-      state.error = null;
-    })
-    .addCase(loginUser.fulfilled, (state, action) => {
-      state.currentUser = action.payload;
-      state.loading = false;
-      state.error = null;
-		  localStorage.setItem('user', JSON.stringify(action.payload));
-    })
-    .addCase(loginUser.rejected, (state, action) => {
-      state.error = action.payload as string;
-      state.loading = false;
-    })
-        
-		// Получение спикска
-    .addCase(fetchUsers.pending, (state) => {
-      state.loading = true;
-    	state.error = null;
-    })
-    .addCase(fetchUsers.fulfilled, (state, action) => {
-      state.users = action.payload;
-      state.loading = false;
-    })
-    .addCase(fetchUsers.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.payload || 'Ошибка при загрузке пользователей';
-    })
-        
-		// Обновление полей
-    .addCase(updateUser.fulfilled, (state, action) => {
-      const updatedUser = action.payload.user;
+      .addCase(loginUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.currentUser = action.payload;
+        state.loading = false;
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.error = action.payload as string;
+        state.loading = false;
+      })
 
-      // Если обновляется сам текущий пользователь
-      if (state.currentUser?.id === updatedUser.id) {
-        state.currentUser = { ...state.currentUser, ...updatedUser };
-      }
+      .addCase(checkAuth.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(checkAuth.fulfilled, (state, action) => {
+        state.currentUser = action.payload;
+        state.loading = false;
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.currentUser = null;
+        state.loading = false;
+      })
 
-      // Если обновляется другой пользователь
-      if (state.users) {
-        const index = state.users.findIndex((u) => u.id === updatedUser.id);
-        if (index !== -1) {
-          state.users[index] = { ...state.users[index], ...updatedUser };
+      .addCase(fetchUsers.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.users = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.error = action.payload as string;
+        state.loading = false;
+      })
+
+      .addCase(updateUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        const updatedUser = action.payload.user;
+
+        // Если обновляется сам текущий пользователь
+        if (state.currentUser?.id === updatedUser.id) {
+          state.currentUser = { ...state.currentUser, ...updatedUser };
         }
-      }
-			state.loading = false;
-    })
-    .addCase(updateUser.pending, (state) => {
-      state.loading = true;
-    })
-    .addCase(updateUser.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.payload || 'Failed to update user';
-    })
-        
-		// Логика удаления пользователя
-    .addCase(deleteUser.fulfilled, (state, action) => {
-      if (state.users) {
-        state.users = state.users.filter((user) => user.id !== action.payload);
-      }
-    })
-    .addCase(deleteUser.rejected, (state, action) => {
-      state.error = action.payload || 'Ошибка при удалении пользователя';
-    })
+
+        // Если обновляется другой пользователь
+        if (state.users) {
+          const index = state.users.findIndex((u) => u.id === updatedUser.id);
+          if (index !== -1) {
+            state.users[index] = { ...state.users[index], ...updatedUser };
+          }
+        }
+
+        // getCsrfToken();
+        state.loading = false;
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.error = action.payload as string;
+        state.loading = false;
+      })
+
+      .addCase(deleteUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        state.users = state.users.filter(user => user.id !== action.payload);
+        state.loading = false;
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
+        state.error = action.payload as string;
+        state.loading = false;
+      })
+
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.currentUser = null;
+        state.users = [];
+        state.loading = false;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.error = action.payload as string;
+        state.loading = false;
+      });
   },
 });
 
-export const { logoutUser } = authSlice.actions;
-
+export const { clearAuth } = authSlice.actions;
 export default authSlice.reducer;
+
+

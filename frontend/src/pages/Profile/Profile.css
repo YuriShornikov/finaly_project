@@ -59,8 +59,11 @@ li {
   grid-template-columns: 10rem 15rem 15rem 10rem;
   flex-direction: row;
   justify-items: center;
+  justify-content: center;
   align-items: center;
   gap: 1rem;
+  border: 1px solid;
+  padding: 1rem;
 }
 
 .add__files input {

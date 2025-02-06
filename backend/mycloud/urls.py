@@ -2,7 +2,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
-from users.views import RegisterView, LoginView, LogoutView, UpdateUserView, DeleteUserView, GetUsersView
+from users.views import (
+    RegisterView, LoginView, LogoutView, UpdateUserView, 
+    DeleteUserView, GetUsersView, CheckAuthView, get_csrf_token
+)
 from storage.views import FileUploadView
 
 # Регистрация ViewSet для работы с файлами
@@ -11,8 +14,10 @@ router.register(r'files', FileUploadView, basename='file')
 
 urlpatterns = [
     # Используем маршруты для APIView (RegisterView, LoginView, LogoutView)
+    path('api/csrf/', get_csrf_token, name='csrf_token'),
     path('api/users/register/', RegisterView.as_view(), name='register'),
     path('api/users/login/', LoginView.as_view(), name='login'),
+    path("api/users/check-auth/", CheckAuthView.as_view(), name="check-auth"),
     path('api/users/logout/', LogoutView.as_view(), name='logout'),
     path('api/users/update/', UpdateUserView.as_view(), name='update-user'),
     path('api/users/<int:user_id>/', DeleteUserView.as_view(), name='delete-user'),

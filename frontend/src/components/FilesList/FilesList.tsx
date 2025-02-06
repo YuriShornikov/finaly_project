@@ -5,12 +5,14 @@ import { FileView } from '../FileView/FileView';
 import { useAppDispatch } from '../../store/store';
 import { fetchFiles } from '../../slice/fileSlice';
 import './FileList.css';
+import { useNavigate } from 'react-router-dom';
 
 interface FilesListProps {
   user: User;
 }
 
 export const FilesList: React.FC<FilesListProps> = ({ user }) => {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const files = useAppSelector((state) => state.files.files);
   const [selectedFile, setSelectedFile] = useState<CustomFile | null>(null);
@@ -19,6 +21,10 @@ export const FilesList: React.FC<FilesListProps> = ({ user }) => {
   const handleFileClick = (file: CustomFile) => {
     if (file) setSelectedFile(file);
   };
+
+  const handleProfile = () => {
+    navigate('/profile')
+  }
 
   // Закрытие редакта
   const handleClose = () => {
@@ -104,6 +110,7 @@ export const FilesList: React.FC<FilesListProps> = ({ user }) => {
           ) : (
             <p>Нет доступных файлов</p>
           )}
+          <button className="btn back" onClick={handleProfile}>Профиль</button>
         </>
       )}
     </>

@@ -12,3 +12,5 @@ requests==2.32.3
 tzdata==2024.2
 idna==3.10
 gunicorn==23.0.0
+django-environ
+

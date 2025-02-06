@@ -1,16 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/hooks';
 import { updateUser, deleteUser, fetchUsers } from '../../slice/authSlice';
 import { User } from '../../types/types';
 import { FilesList } from '../../components/FilesList/FilesList';
+import { validateLogin, validateEmail} from '../../types/types';
 import './AdminUserList.css'
 
+interface UserErrors {
+  [userId: number]: {
+    login?: string;
+    email?: string;
+    fullname?: string;
+  };
+}
+
+
 export const AdminUserList: React.FC = () => {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const users = useAppSelector((state) => state.auth.users);
   const currentUser = useAppSelector((state) => state.auth.currentUser);
   const [editedUsers, setEditedUsers] = useState<{ [key: number]: Partial<User> }>({});
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [errors, setErrors] = useState<UserErrors>({});
 
   useEffect(() => {
     dispatch(fetchUsers());
@@ -26,16 +39,66 @@ export const AdminUserList: React.FC = () => {
   // Сохранение изменения полей
   const handleAdminSaveField = async (userId: number) => {
     const updatedUser = editedUsers[userId];
-    if (updatedUser) {
-      try {
-        await dispatch(updateUser({ id: userId, ...updatedUser }));
-        setEditedUsers((prev) => {
-          const { [userId]: _, ...rest } = prev;
-          return rest;
-        });
-      } catch (err) {
-        console.error('Failed to update user:', err);
+    if (!updatedUser) return;
+  
+    // Очистка текущих ошибок перед новой проверкой
+    setErrors((prev) => ({ ...prev, [userId]: {} }));
+  
+    const newErrors: UserErrors = {};
+    let isValid = true;
+  
+    // Валидация только изменённых полей
+    if (updatedUser.login !== undefined) {
+      if (!validateLogin(updatedUser.login.trim())) {
+        newErrors[userId] = {
+          ...newErrors[userId],
+          login: 'Логин должен содержать только латинские буквы и цифры, первый символ — буква, длина от 4 до 20 символов',
+        };
+        isValid = false;
       }
+    }
+  
+    if (updatedUser.email !== undefined) {
+      if (!validateEmail(updatedUser.email.trim())) {
+        newErrors[userId] = {
+          ...newErrors[userId],
+          email: 'Email должен соответствовать формату адресов электронной почты',
+        };
+        isValid = false;
+      }
+    }
+  
+    if (updatedUser.fullname !== undefined) {
+      if (updatedUser.fullname.trim() === '') {
+        newErrors[userId] = {
+          ...newErrors[userId],
+          fullname: 'Введите корректное значение',
+        };
+        isValid = false;
+      }
+    }
+  
+    // Если есть ошибки — обновляем состояние ошибок и прекращаем выполнение
+    if (!isValid) {
+      setErrors((prev) => ({ ...prev, ...newErrors }));
+      return;
+    }
+  
+    // Отправка обновленных данных
+    try {
+      await dispatch(updateUser({ id: userId, ...updatedUser }));
+      setEditedUsers((prev) => {
+        const { [userId]: _, ...rest } = prev;
+        return rest;
+      });
+  
+      // Удаляем ошибки после успешного сохранения
+      setErrors((prev) => {
+        const { [userId]: _, ...rest } = prev;
+        return rest;
+      });
+    } catch (err) {
+      console.error('Failed to update user:', err);
     }
   };
 
@@ -43,14 +106,18 @@ export const AdminUserList: React.FC = () => {
   const handleDeleteUser = async (userId: number) => {
     try {
       await dispatch(deleteUser(userId));
+      setEditedUsers((prev) => {
+        const { [userId]: _, ...rest } = prev;
+        return rest;
+      });
     } catch (err) {
       console.error('Failed to delete user:', err);
     }
   };
 
-	// Переход к файлам пользователя
   const handleUserClick = (user: User) => {
     setSelectedUser(user);
+    navigate(`/cloud/${user.id}`);
   };
 
   // Возврат
@@ -102,6 +169,7 @@ export const AdminUserList: React.FC = () => {
                               handleAdminEditField(user.id, 'login', e.target.value)
                             }
                           />
+                          {errors[user.id]?.login && <p className="error">{errors[user.id].login}</p>}
                         </td>
                         <td>
                           <input
@@ -111,6 +179,7 @@ export const AdminUserList: React.FC = () => {
                               handleAdminEditField(user.id, 'fullname', e.target.value)
                             }
                           />
+                          {errors[user.id]?.fullname && <p className="error">{errors[user.id].fullname}</p>}
                         </td>
                         <td>
                           <input
@@ -120,6 +189,7 @@ export const AdminUserList: React.FC = () => {
                               handleAdminEditField(user.id, 'email', e.target.value)
                             }
                           />
+                          {errors[user.id]?.email && <p className="error">{errors[user.id].email}</p>}
                         </td>
                         <td>
                           <input
@@ -177,6 +247,7 @@ export const AdminUserList: React.FC = () => {
                           value={editedUsers[user.id]?.login ?? user.login}
                           onChange={(e) => handleAdminEditField(user.id, 'login', e.target.value)}
                         />
+                        {errors[user.id]?.login && <p className="error">{errors[user.id].login}</p>}
                       </div>
                     </div>
                     <div className="user-info">
@@ -187,6 +258,7 @@ export const AdminUserList: React.FC = () => {
                           value={editedUsers[user.id]?.fullname ?? user.fullname}
                           onChange={(e) => handleAdminEditField(user.id, 'fullname', e.target.value)}
                         />
+                        {errors[user.id]?.fullname && <p className="error">{errors[user.id].fullname}</p>}
                       </div>
                     </div>
                     <div className="user-info">
@@ -197,6 +269,7 @@ export const AdminUserList: React.FC = () => {
                           value={editedUsers[user.id]?.email ?? user.email}
                           onChange={(e) => handleAdminEditField(user.id, 'email', e.target.value)}
                         />
+                        {errors[user.id]?.email && <p className="error">{errors[user.id].email}</p>}
                       </div>
                     </div>
                     <div className="user-info">

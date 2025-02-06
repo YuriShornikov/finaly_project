@@ -123,7 +123,7 @@ export const Registration: React.FC = () => {
           <button className='btn' type='submit' disabled={isSubmitting}>
             {isSubmitting ? 'Registering...' : 'Регистрация'}
           </button>
-          <button className='btn' onClick={() => handleLogin()}>
+          <button className='btn' onClick={() => handleLogin()} type='button'>
             Логин
           </button>
         </div>

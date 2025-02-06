@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAppDispatch } from '../../store/store';
-import { useAppSelector } from '../../hooks/hooks';
-import { updateUser } from '../../slice/authSlice';
 import { deleteFile, renameFile, updateFileComment, downloadFile } from '../../slice/fileSlice';
+import { updateUser } from '../../slice/authSlice'
 import { File } from '../../types/types';
+import { useAppSelector, useAppDispatch } from '../../hooks/hooks';
 import './FileView.css';
 
 interface FileViewProps {
@@ -15,9 +14,9 @@ export const FileView: React.FC<FileViewProps> = ({ file, onClose }) => {
   const dispatch = useAppDispatch();
   const [newFileName, setNewFileName] = useState(file.file_name);
   const [comment, setComment] = useState(file.comment || "");
-  const user = useAppSelector((state) => state.auth.currentUser);
   const [tempFileName, setTempFileName] = useState(file.file_name);
   const [sharedLink, setSharedLink] = useState<string | null>(null);
+  const user = useAppSelector((state) => state.auth.currentUser);
 
   // Загружаем комментарий при открытии компонента
   useEffect(() => {
@@ -29,8 +28,8 @@ export const FileView: React.FC<FileViewProps> = ({ file, onClose }) => {
   // Удаление файла
   const handleDelete = () => {
     dispatch(deleteFile({ userId: file.user_id, fileId: file.id }));
-		if (file.url === user?.avatar) {
-      dispatch(updateUser({ ...user, avatar: '' }));
+    if (file.url === user?.avatar) {
+      dispatch(updateUser({id: user.id, avatar: ''}))
     }
     onClose();
   };
@@ -57,7 +56,7 @@ export const FileView: React.FC<FileViewProps> = ({ file, onClose }) => {
 
   // Загрузка файла
   const handleDownload = () => {
-    dispatch(downloadFile({ fileId: file.id }))
+    dispatch(downloadFile({ fileId: file.id, fileName: file.file_name }))
     .unwrap()
     .then(() => {
         console.log('Файл успешно скачан');

@@ -11,6 +11,10 @@ export const Home: React.FC = () => {
   const handleLogin = () => {
     navigate('/login');
   };
+
+  const handleCloud = () => {
+    navigate('/cloud');
+  };
     
   return (
     <div className="home">
@@ -19,7 +23,12 @@ export const Home: React.FC = () => {
         чтобы получить доступ к личному кабинету и хранилищу данных. 
         Мы предлагаем удобный интерфейс и совершенно бесплатное пользование.
       </p>
+      <h2>Файловое хранилище</h2>
+      
       <div className="btn-block">
+        <button className="btn" onClick={handleCloud}>
+          Облако
+        </button>
         <button className="btn" onClick={handleRegister}>
           Регистрация
         </button>

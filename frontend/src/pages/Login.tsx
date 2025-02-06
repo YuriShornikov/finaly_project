@@ -2,22 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/hooks';
 import { loginUser } from '../slice/authSlice';
 import { useNavigate } from 'react-router-dom';
+import { checkAuth } from '../slice/authSlice';
 
 export const Login: React.FC = () => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector((state) => state.auth);
+  const { loading, error, currentUser } = useAppSelector((state) => state.auth);
   const navigate = useNavigate();
 
+  // Проверка авторизации пользователя
   useEffect(() => {
-        
-		// Проверка токена в localStorage
-		const accessToken = localStorage.getItem('accessToken');
-		if (accessToken) {
-			navigate('/profile');
-		}
-  }, [navigate]);
+    dispatch(checkAuth());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/profile');
+    }
+  }, [currentUser, navigate]);
+
+  const handleHome = () => {
+    navigate('/');
+  }
+
+  const handleRegistr = () => {
+    navigate('/registration')
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,37 +39,41 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className='form'>
+    <div className="form">
       <h1>Войти в личный кабинет</h1>
-      <form className='login' onSubmit={handleSubmit}>
+      <form className="login" onSubmit={handleSubmit}>
         <div className="inp">
-          <label htmlFor='input-login'>Login</label>
+          <label htmlFor="input-login">Login</label>
           <input
-            id='input-login'
-            type='text'
-            placeholder='Введите логин'
+            id="input-login"
+            type="text"
+            placeholder="Введите логин"
             value={login}
             onChange={(e) => setLogin(e.target.value)}
             required
-            autoComplete='current-login'
+            autoComplete="current-login"
           />
         </div>
-        <div className='inp'>
-          <label htmlFor='input-pas'>Password</label>
+        <div className="inp">
+          <label htmlFor="input-pas">Password</label>
           <input
-            id='input-pas'
-            type='password'
-            placeholder='Введите пароль'
+            id="input-pas"
+            type="password"
+            placeholder="Введите пароль"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            autoComplete='current-password'
+            autoComplete="current-password"
           />
       	</div>
         <p>{error}</p>
-        <button className='btn' type='submit' disabled={loading}>
-          {loading ? 'Loading...' : 'Login'}
-        </button>
+        <div className="btn__block">
+          <button className="btn" type="submit" disabled={loading}>
+            {loading ? 'Loading...' : 'Войти'}
+          </button>
+          <button className="btn cancel" type="button" onClick={handleHome}>Отмена</button>
+        </div>
+        <button className="btn__switch" type="button" onClick={handleRegistr}>У вас нет аккаунта?</button>
       </form>
     </div>
   );
